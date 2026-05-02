@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Moderator Panel — First Is Real Owner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 200px; min-width: 200px; background: #161b27; display: flex; flex-direction: column;
+    border-right: 1px solid #2d3748;
+  }
+  .sidebar-header {
+    padding: 18px 16px; border-bottom: 1px solid #2d3748;
+  }
+  .sidebar-header .logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-icon {
+    width: 34px; height: 34px; background: #4f46e5; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff;
+  }
+  .logo-text { line-height: 1.2; }
+  .logo-text .title { font-size: 13px; font-weight: 700; color: #fff; }
+  .logo-text .sub { font-size: 10px; color: #64748b; }
+
+  .nav { flex: 1; padding: 12px 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    font-size: 13px; color: #94a3b8; cursor: pointer; border-left: 3px solid transparent;
+    transition: all 0.15s; user-select: none;
+  }
+  .nav-item:hover { background: #1e2535; color: #e2e8f0; }
+  .nav-item.active { background: #1e2a45; color: #60a5fa; border-left-color: #3b82f6; font-weight: 600; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .safety-box {
+    margin: 12px; padding: 12px; background: #1a1f2e; border: 1px solid #2d3748; border-radius: 8px; font-size: 11px;
+  }
+  .safety-box .safety-title { font-weight: 700; color: #fbbf24; margin-bottom: 6px; font-size: 11px; }
+  .safety-box p { color: #94a3b8; line-height: 1.5; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 28px; border-bottom: 1px solid #2d3748; background: #0f1117;
+  }
+  .topbar-left .page-title { font-size: 22px; font-weight: 700; color: #fff; }
+  .topbar-left .page-sub { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+  .owner-badge {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .owner-avatar {
+    width: 36px; height: 36px; background: #7c3aed; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff;
+    flex-shrink: 0;
+  }
+  .owner-info .name { font-size: 13px; font-weight: 600; color: #fff; }
+  .owner-info .role { font-size: 11px; color: #64748b; }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: #161b27; border: 1px solid #2d3748; border-radius: 10px; padding: 18px 20px;
+  }
+  .stat-card .stat-label { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+  .stat-card .stat-value { font-size: 28px; font-weight: 700; color: #fff; }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* PANELS */
+  .panel {
+    background: #161b27; border: 1px solid #2d3748; border-radius: 10px; padding: 20px;
+  }
+  .panel-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .panel-sub { font-size: 12px; color: #64748b; margin-bottom: 16px; }
+
+  /* PLAYER LOOKUP */
+  .search-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .search-input {
+    flex: 1; background: #0f1117; border: 1px solid #2d3748; border-radius: 6px;
+    padding: 9px 12px; color: #e2e8f0; font-size: 13px; outline: none;
+  }
+  .search-input::placeholder { color: #475569; }
+  .search-input:focus { border-color: #3b82f6; }
+  .btn-search {
+    background: #3b82f6; color: #fff; border: none; border-radius: 6px;
+    padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s;
+  }
+  .btn-search:hover { background: #2563eb; }
+
+  .player-card {
+    background: #0f1117; border: 1px solid #2d3748; border-radius: 8px;
+    padding: 16px; text-align: center; margin-bottom: 16px;
+  }
+  .player-card .player-avatar {
+    width: 40px; height: 40px; background: #374151; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+  }
+  .player-card .no-player-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .player-card .no-player-sub { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+  .player-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .tag {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 1px solid #2d3748; color: #94a3b8;
+  }
+  .tag.green { border-color: #16a34a; color: #4ade80; background: rgba(22,163,74,0.1); }
+
+  /* PUNISHMENT FORM */
+  .form-select, .form-input, .form-textarea {
+    width: 100%; background: #0f1117; border: 1px solid #2d3748; border-radius: 6px;
+    padding: 9px 12px; color: #e2e8f0; font-size: 13px; outline: none; margin-bottom: 10px;
+  }
+  .form-select:focus, .form-input:focus, .form-textarea:focus { border-color: #3b82f6; }
+  .form-textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+  .form-select option { background: #161b27; }
+
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .btn-action {
+    padding: 10px; border-radius: 6px; border: 1px solid; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; background: transparent;
+  }
+  .btn-warn { border-color: #fbbf24; color: #fbbf24; }
+  .btn-warn:hover { background: rgba(251,191,36,0.1); }
+  .btn-kick { border-color: #94a3b8; color: #94a3b8; }
+  .btn-kick:hover { background: rgba(148,163,184,0.1); }
+  .btn-strike { border-color: #f97316; color: #f97316; }
+  .btn-strike:hover { background: rgba(249,115,22,0.1); }
+  .btn-tempban { border-color: #ef4444; color: #ef4444; }
+  .btn-tempban:hover { background: rgba(239,68,68,0.1); }
+
+  .btn-submit {
+    width: 100%; padding: 12px; border-radius: 6px; border: none;
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-submit:hover { opacity: 0.9; }
+  .form-note { font-size: 11px; color: #475569; margin-top: 8px; text-align: center; }
+  .form-note a { color: #3b82f6; text-decoration: none; }
+  .form-note a:hover { text-decoration: underline; }
+
+  /* LOGS */
+  .log-item {
+    background: #0f1117; border: 1px solid #2d3748; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .log-item:last-child { margin-bottom: 0; }
+  .log-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .log-title .warn-tag { color: #fbbf24; }
+  .log-title .ban-tag { color: #f97316; }
+  .log-title .fire-tag { color: #ef4444; }
+  .log-meta { font-size: 11px; color: #64748b; line-height: 1.5; }
+  .log-meta span { color: #94a3b8; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: #22c55e; color: #fff;
+    padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* PAGE SECTIONS */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0f1117; }
+  ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">
+        <div class="title">Moderator Panel</div>
+        <div class="sub">Roblox Game Dashboard</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('players', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Players
+    </div>
+    <div class="nav-item" onclick="showPage('punishments', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Punishments
+    </div>
+    <div class="nav-item" onclick="showPage('appeals', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Ban Appeals
+    </div>
+    <div class="nav-item" onclick="showPage('logs', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Staff Logs
+    </div>
+    <div class="nav-item" onclick="showPage('settings', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </div>
+  </nav>
+
+  <div class="safety-box">
+    <div class="safety-title">⚠ Safety Reminder</div>
+    <p>Never ask staff to enter Roblox passwords or ROBLOSECURITY cookies.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title" id="pageTitle">Game Moderation Dashboard</div>
+      <div class="page-sub" id="pageSub">Search players, issue punishments, and track staff actions.</div>
+    </div>
+    <div class="owner-badge">
+      <div class="owner-avatar">P</div>
+      <div class="owner-info">
+        <div class="name">Poiseau8232</div>
+        <div class="role">Owner / Head Moderator</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Warnings Today</div>
+          <div class="stat-value" id="stat-warnings">3</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Bans</div>
+          <div class="stat-value" id="stat-bans">1</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Staff Online</div>
+          <div class="stat-value" id="stat-staff">5</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Open Appeals</div>
+          <div class="stat-value" id="stat-appeals">2</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- PLAYER LOOKUP -->
+        <div class="panel">
+          <div class="panel-title">Player Lookup</div>
+          <div class="panel-sub">Search by username or UserId</div>
+
+          <div class="search-row">
+            <input class="search-input" id="playerSearch" type="text" placeholder="Example: Poiseau8232" />
+            <button class="btn-search" onclick="searchPlayer()">Search</button>
+          </div>
+
+          <div class="player-card" id="playerCard">
+            <div class="player-avatar">
+              <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="no-player-title" id="playerName">No player selected</div>
+            <div class="no-player-sub" id="playerSubtext">Search a player to begin moderation.</div>
+            <div class="player-tags" id="playerTags">
+              <span class="tag">Warnings: 0</span>
+              <span class="tag">Strikes: 0</span>
+              <span class="tag green">Status: Normal</span>
+            </div>
+          </div>
+
+          <select class="form-select" id="punishType">
+            <option value="warning">Warning</option>
+            <option value="kick">Kick</option>
+            <option value="strike">Strike</option>
+            <option value="tempban">Temp Ban</option>
+            <option value="permban">Permanent Ban</option>
+          </select>
+          <input class="form-input" id="punishDuration" type="text" placeholder="Duration, example: 1h, 1d, 7d, Permanent" />
+          <textarea class="form-textarea" id="punishReason" placeholder="Punishment reason..."></textarea>
+
+          <div class="btn-grid">
+            <button class="btn-action btn-warn" onclick="quickPunish('Warning')">Warn</button>
+            <button class="btn-action btn-kick" onclick="quickPunish('Kick')">Kick</button>
+            <button class="btn-action btn-strike" onclick="quickPunish('Strike')">Strike</button>
+            <button class="btn-action btn-tempban" onclick="quickPunish('Temp Ban')">Temp Ban</button>
+          </div>
+          <button class="btn-submit" onclick="submitPunishment()">Submit Punishment</button>
+          <div class="form-note">
+            This is a frontend demo. To connect it to Roblox, you would add a backend API and use Roblox HttpService from your
+            <a href="https://www.roblox.com/games/117912640969775/First-Is-Real-Owner" target="_blank">game server</a>.
+          </div>
+        </div>
+
+        <!-- RECENT LOGS -->
+        <div class="panel">
+          <div class="panel-title">Recent Logs</div>
+          <div class="panel-sub">Latest staff actions</div>
+
+          <div id="logsContainer">
+            <div class="log-item">
+              <div class="log-title"><span class="warn-tag">Warning</span> — CoolPlayer123</div>
+              <div class="log-meta">Reason: Spamming chat. &nbsp;<span>Staff: Poiseau8232</span> &nbsp;<span>Time: 2 minutes ago.</span></div>
+            </div>
+            <div class="log-item">
+              <div class="log-title"><span class="ban-tag">Temp Ban</span> — ExploiterGuy</div>
+              <div class="log-meta">Reason: Flying exploit. &nbsp;<span>Duration: 7d</span> &nbsp;<span>Staff: Poiseau8232</span> &nbsp;<span>Time: 18 minutes ago.</span></div>
+            </div>
+            <div class="log-item">
+              <div class="log-title"><span class="fire-tag">Fire Warning</span> — RecruitPlayer</div>
+              <div class="log-meta">Reason: Refusing orders during training. &nbsp;<span>Staff: me7nu</span> &nbsp;<span>Time: 42 minutes ago.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYERS PAGE -->
+    <div class="page" id="page-players">
+      <div class="panel">
+        <div class="panel-title">Player List</div>
+        <div class="panel-sub">All players who have been actioned</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;">
+          <thead>
+            <tr style="color:#64748b;border-bottom:1px solid #2d3748;">
+              <th style="text-align:left;padding:8px 12px;">Username</th>
+              <th style="text-align:left;padding:8px 12px;">Warnings</th>
+              <th style="text-align:left;padding:8px 12px;">Strikes</th>
+              <th style="text-align:left;padding:8px 12px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="playerTable">
+            <tr style="border-bottom:1px solid #1e2535;">
+              <td style="padding:10px 12px;color:#e2e8f0;">CoolPlayer123</td>
+              <td style="padding:10px 12px;color:#fbbf24;">1</td>
+              <td style="padding:10px 12px;">0</td>
+              <td style="padding:10px 12px;"><span class="tag" style="color:#fbbf24;border-color:#fbbf24;">Warned</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid #1e2535;">
+              <td style="padding:10px 12px;color:#e2e8f0;">ExploiterGuy</td>
+              <td style="padding:10px 12px;color:#fbbf24;">2</td>
+              <td style="padding:10px 12px;color:#f97316;">1</td>
+              <td style="padding:10px 12px;"><span class="tag" style="color:#ef4444;border-color:#ef4444;">Temp Banned</span></td>
+            </tr>
+            <tr>
+              <td style="padding:10px 12px;color:#e2e8f0;">RecruitPlayer</td>
+              <td style="padding:10px 12px;color:#fbbf24;">1</td>
+              <td style="padding:10px 12px;">0</td>
+              <td style="padding:10px 12px;"><span class="tag green">Normal</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PUNISHMENTS PAGE -->
+    <div class="page" id="page-punishments">
+      <div class="panel">
+        <div class="panel-title">Punishment History</div>
+        <div class="panel-sub">All issued punishments</div>
+        <div id="punishmentHistory" style="margin-top:8px;"></div>
+        <div id="noPunishments" style="text-align:center;padding:40px;color:#64748b;font-size:13px;">No punishments recorded yet. Issue one from the Dashboard.</div>
+      </div>
+    </div>
+
+    <!-- BAN APPEALS PAGE -->
+    <div class="page" id="page-appeals">
+      <div class="panel">
+        <div class="panel-title">Ban Appeals</div>
+        <div class="panel-sub">Review and respond to player appeals</div>
+        <div style="margin-top:16px;">
+          <div class="log-item" style="border-color:#3b82f6;">
+            <div class="log-title" style="color:#60a5fa;">Appeal #001 — ExploiterGuy</div>
+            <div class="log-meta" style="margin-top:6px;color:#94a3b8;">"I wasn't exploiting, I was just lagging. Please unban me, I love this game."</div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="btn-action btn-kick" style="flex:1;padding:8px;" onclick="handleAppeal(this,'Accepted')">Accept</button>
+              <button class="btn-action btn-tempban" style="flex:1;padding:8px;" onclick="handleAppeal(this,'Denied')">Deny</button>
+            </div>
+          </div>
+          <div class="log-item" style="border-color:#3b82f6;">
+            <div class="log-title" style="color:#60a5fa;">Appeal #002 — AnotherPlayer</div>
+            <div class="log-meta" style="margin-top:6px;color:#94a3b8;">"I got banned for no reason. I was just standing there."</div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="btn-action btn-kick" style="flex:1;padding:8px;" onclick="handleAppeal(this,'Accepted')">Accept</button>
+              <button class="btn-action btn-tempban" style="flex:1;padding:8px;" onclick="handleAppeal(this,'Denied')">Deny</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAFF LOGS PAGE -->
+    <div class="page" id="page-logs">
+      <div class="panel">
+        <div class="panel-title">Staff Action Logs</div>
+        <div class="panel-sub">Full history of all staff actions</div>
+        <div id="fullLogs" style="margin-top:8px;">
+          <div class="log-item">
+            <div class="log-title"><span class="warn-tag">Warning</span> — CoolPlayer123</div>
+            <div class="log-meta">Reason: Spamming chat. &nbsp;<span>Staff: Poiseau8232</span> &nbsp;<span>Time: 2 minutes ago.</span></div>
+          </div>
+          <div class="log-item">
+            <div class="log-title"><span class="ban-tag">Temp Ban</span> — ExploiterGuy</div>
+            <div class="log-meta">Reason: Flying exploit. &nbsp;<span>Duration: 7d</span> &nbsp;<span>Staff: Poiseau8232</span> &nbsp;<span>Time: 18 minutes ago.</span></div>
+          </div>
+          <div class="log-item">
+            <div class="log-title"><span class="fire-tag">Strike</span> — RecruitPlayer</div>
+            <div class="log-meta">Reason: Refusing orders during training. &nbsp;<span>Staff: me7nu</span> &nbsp;<span>Time: 42 minutes ago.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="panel">
+        <div class="panel-title">Settings</div>
+        <div class="panel-sub">Configure your moderation panel</div>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <label style="font-size:12px;color:#64748b;display:block;margin-bottom:6px;">Game Name</label>
+            <input class="form-input" value="First Is Real Owner" style="margin:0;" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:#64748b;display:block;margin-bottom:6px;">Owner Username</label>
+            <input class="form-input" value="Poiseau8232" style="margin:0;" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:#64748b;display:block;margin-bottom:6px;">Game Link</label>
+            <input class="form-input" value="https://www.roblox.com/games/117912640969775/First-Is-Real-Owner" style="margin:0;" />
+          </div>
+          <div>
+            <a href="https://www.roblox.com/games/117912640969775/First-Is-Real-Owner" target="_blank"
+              style="display:inline-block;background:linear-gradient(135deg,#6366f1,#3b82f6);color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">
+              ▶ Open Game on Roblox
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const pageTitles = {
+    dashboard: ['Game Moderation Dashboard', 'Search players, issue punishments, and track staff actions.'],
+    players: ['Players', 'View and manage all actioned players.'],
+    punishments: ['Punishments', 'Full punishment history for this game.'],
+    appeals: ['Ban Appeals', 'Review open ban appeals from players.'],
+    logs: ['Staff Logs', 'Complete log of all staff actions.'],
+    settings: ['Settings', 'Configure your moderation panel.'],
+  };
+
+  const punishments = [];
+
+  function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    el.classList.add('active');
+    document.getElementById('pageTitle').textContent = pageTitles[id][0];
+    document.getElementById('pageSub').textContent = pageTitles[id][1];
+  }
+
+  function showToast(msg, color = '#22c55e') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = color;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function searchPlayer() {
+    const q = document.getElementById('playerSearch').value.trim();
+    if (!q) return showToast('Enter a username to search.', '#f97316');
+    document.getElementById('playerName').textContent = q;
+    document.getElementById('playerSubtext').textContent = 'Player found. Select a punishment below.';
+    document.getElementById('playerTags').innerHTML =
+      '<span class="tag">Warnings: 0</span><span class="tag">Strikes: 0</span><span class="tag green">Status: Normal</span>';
+    showToast('Player "' + q + '" loaded.');
+  }
+
+  function quickPunish(type) {
+    document.getElementById('punishType').value = type.toLowerCase().replace(' ', '');
+    showToast(type + ' selected.', '#3b82f6');
+  }
+
+  function submitPunishment() {
+    const player = document.getElementById('playerName').textContent;
+    if (player === 'No player selected') return showToast('Search a player first.', '#f97316');
+    const type = document.getElementById('punishType').value;
+    const duration = document.getElementById('punishDuration').value || 'N/A';
+    const reason = document.getElementById('punishReason').value || 'No reason given.';
+    const typeLabels = { warning:'Warning', kick:'Kick', strike:'Strike', tempban:'Temp Ban', permban:'Perm Ban' };
+    const label = typeLabels[type] || type;
+    const now = new Date().toLocaleTimeString();
+
+    // Add to logs
+    const log = { player, type: label, duration, reason, time: now };
+    punishments.push(log);
+
+    const logsContainer = document.getElementById('logsContainer');
+    const fullLogs = document.getElementById('fullLogs');
+    const colorMap = { Warning:'warn-tag', Kick:'', Strike:'fire-tag', 'Temp Ban':'ban-tag', 'Perm Ban':'fire-tag' };
+    const cls = colorMap[label] || 'warn-tag';
+    const html = `<div class="log-item">
+      <div class="log-title"><span class="${cls}">${label}</span> — ${player}</div>
+      <div class="log-meta">Reason: ${reason} &nbsp;<span>Duration: ${duration}</span> &nbsp;<span>Staff: Poiseau8232</span> &nbsp;<span>Time: just now.</span></div>
+    </div>`;
+    logsContainer.insertAdjacentHTML('afterbegin', html);
+    fullLogs.insertAdjacentHTML('afterbegin', html);
+
+    // Update punishments page
+    const ph = document.getElementById('punishmentHistory');
+    ph.insertAdjacentHTML('afterbegin', html);
+    document.getElementById('noPunishments').style.display = 'none';
+
+    // Update stats
+    if (label === 'Warning') document.getElementById('stat-warnings').textContent = parseInt(document.getElementById('stat-warnings').textContent) + 1;
+    if (label === 'Temp Ban' || label === 'Perm Ban') document.getElementById('stat-bans').textContent = parseInt(document.getElementById('stat-bans').textContent) + 1;
+
+    document.getElementById('punishDuration').value = '';
+    document.getElementById('punishReason').value = '';
+    showToast(label + ' issued to ' + player + '!');
+  }
+
+  function handleAppeal(btn, verdict) {
+    const card = btn.closest('.log-item');
+    card.style.borderColor = verdict === 'Accepted' ? '#22c55e' : '#ef4444';
+    card.querySelectorAll('button').forEach(b => b.disabled = true);
+    const label = card.querySelector('.log-title').textContent;
+    card.insertAdjacentHTML('beforeend', `<div style="margin-top:8px;font-size:12px;font-weight:600;color:${verdict==='Accepted'?'#4ade80':'#f87171'};">
+      ${verdict === 'Accepted' ? '✅' : '❌'} Appeal ${verdict} by Poiseau8232
+    </div>`);
+    if (verdict === 'Accepted') document.getElementById('stat-bans').textContent = Math.max(0, parseInt(document.getElementById('stat-bans').textContent) - 1);
+    document.getElementById('stat-appeals').textContent = Math.max(0, parseInt(document.getElementById('stat-appeals').textContent) - 1);
+    showToast('Appeal ' + verdict.toLowerCase() + '.', verdict === 'Accepted' ? '#22c55e' : '#ef4444');
+  }
+
+  document.getElementById('playerSearch').addEventListener('keydown', e => { if (e.key === 'Enter') searchPlayer(); });
+</script>
+</body>
+</html>
