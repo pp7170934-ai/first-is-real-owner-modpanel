@@ -176,6 +176,26 @@
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #0f1117; }
   ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+
+  /* RANK OPTIONS */
+  .rank-option {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+    background: #0f1117; border: 1px solid #2d3748; border-radius: 8px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .rank-option:hover { border-color: #4b5563; background: #1a1f2e; }
+  .rank-option.selected { border-width: 2px; background: #1a1f2e; }
+  .rank-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+  }
+  .rank-info { flex: 1; }
+  .rank-name { font-size: 13px; font-weight: 700; }
+  .rank-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+  .rank-badge {
+    font-size: 11px; padding: 3px 9px; border-radius: 20px; border: 1px solid;
+    font-weight: 600; white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -212,6 +232,10 @@
     <div class="nav-item" onclick="showPage('logs', this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
       Staff Logs
+    </div>
+    <div class="nav-item" onclick="showPage('rank', this)">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Rank
     </div>
     <div class="nav-item" onclick="showPage('settings', this)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -430,7 +454,115 @@
       </div>
     </div>
 
-    <!-- SETTINGS PAGE -->
+    <!-- RANK PAGE -->
+    <div class="page" id="page-rank">
+      <div class="two-col" style="align-items:start;">
+
+        <div class="panel">
+          <div class="panel-title">Assign Rank</div>
+          <div class="panel-sub">Enter a username and choose a rank to assign</div>
+
+          <div class="search-row" style="margin-bottom:16px;">
+            <input class="search-input" id="rankUsername" type="text" placeholder="Enter username..." />
+            <button class="btn-search" onclick="loadRankUser()">Load</button>
+          </div>
+
+          <div class="player-card" id="rankPlayerCard" style="margin-bottom:16px;">
+            <div class="player-avatar">
+              <svg width="20" height="20" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="no-player-title" id="rankPlayerName">No player selected</div>
+            <div class="no-player-sub" id="rankPlayerSub">Load a player to assign a rank.</div>
+            <div class="player-tags" id="rankPlayerTags">
+              <span class="tag">Current Rank: None</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom:12px;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Select Rank</div>
+          <div id="rankList" style="display:flex;flex-direction:column;gap:8px;">
+
+            <div class="rank-option" data-rank="Owner" data-color="#f59e0b" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b;">👑</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#f59e0b;">Owner</div>
+                <div class="rank-desc">Full control over the game and moderation team</div>
+              </div>
+              <div class="rank-badge" style="border-color:#f59e0b;color:#f59e0b;">Rank 7</div>
+            </div>
+
+            <div class="rank-option" data-rank="Head Moderator" data-color="#a855f7" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(168,85,247,0.15);color:#a855f7;">🔱</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#a855f7;">Head Moderator</div>
+                <div class="rank-desc">Oversees all moderation staff and decisions</div>
+              </div>
+              <div class="rank-badge" style="border-color:#a855f7;color:#a855f7;">Rank 6</div>
+            </div>
+
+            <div class="rank-option" data-rank="Senior Moderator" data-color="#3b82f6" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6;">⭐</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#3b82f6;">Senior Moderator</div>
+                <div class="rank-desc">Experienced moderator with advanced permissions</div>
+              </div>
+              <div class="rank-badge" style="border-color:#3b82f6;color:#3b82f6;">Rank 5</div>
+            </div>
+
+            <div class="rank-option" data-rank="Moderator" data-color="#22c55e" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(34,197,94,0.15);color:#22c55e;">🛡️</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#22c55e;">Moderator</div>
+                <div class="rank-desc">Can warn, kick, and ban players</div>
+              </div>
+              <div class="rank-badge" style="border-color:#22c55e;color:#22c55e;">Rank 4</div>
+            </div>
+
+            <div class="rank-option" data-rank="Trial Moderator" data-color="#06b6d4" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(6,182,212,0.15);color:#06b6d4;">🔰</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#06b6d4;">Trial Moderator</div>
+                <div class="rank-desc">New staff member in training period</div>
+              </div>
+              <div class="rank-badge" style="border-color:#06b6d4;color:#06b6d4;">Rank 3</div>
+            </div>
+
+            <div class="rank-option" data-rank="Helper" data-color="#84cc16" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(132,204,22,0.15);color:#84cc16;">💼</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#84cc16;">Helper</div>
+                <div class="rank-desc">Assists players and reports issues to staff</div>
+              </div>
+              <div class="rank-badge" style="border-color:#84cc16;color:#84cc16;">Rank 2</div>
+            </div>
+
+            <div class="rank-option" data-rank="Member" data-color="#94a3b8" onclick="selectRank(this)">
+              <div class="rank-icon" style="background:rgba(148,163,184,0.15);color:#94a3b8;">👤</div>
+              <div class="rank-info">
+                <div class="rank-name" style="color:#94a3b8;">Member</div>
+                <div class="rank-desc">Regular verified member of the community</div>
+              </div>
+              <div class="rank-badge" style="border-color:#94a3b8;color:#94a3b8;">Rank 1</div>
+            </div>
+
+          </div>
+
+          <button class="btn-submit" style="margin-top:16px;" onclick="assignRank()">Assign Rank</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Rank Assignment Log</div>
+          <div class="panel-sub">Recent rank changes</div>
+          <div id="rankLog" style="margin-top:4px;">
+            <div style="text-align:center;padding:40px 20px;color:#475569;font-size:13px;">
+              No rank assignments yet.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+        <!-- SETTINGS PAGE -->
     <div class="page" id="page-settings">
       <div class="panel">
         <div class="panel-title">Settings</div>
@@ -466,6 +598,7 @@
 <script>
   const pageTitles = {
     dashboard: ['Game Moderation Dashboard', 'Search players, issue punishments, and track staff actions.'],
+    rank: ['Rank Management', 'Assign and manage ranks for players in First Is Real Owner.'],
     players: ['Players', 'View and manage all actioned players.'],
     punishments: ['Punishments', 'Full punishment history for this game.'],
     appeals: ['Ban Appeals', 'Review open ban appeals from players.'],
@@ -559,7 +692,53 @@
     showToast('Appeal ' + verdict.toLowerCase() + '.', verdict === 'Accepted' ? '#22c55e' : '#ef4444');
   }
 
-  document.getElementById('playerSearch').addEventListener('keydown', e => { if (e.key === 'Enter') searchPlayer(); });
+
+  let selectedRank = null;
+  let rankTarget = null;
+
+  function loadRankUser() {
+    const q = document.getElementById('rankUsername').value.trim();
+    if (!q) return showToast('Enter a username first.', '#f97316');
+    rankTarget = q;
+    document.getElementById('rankPlayerName').textContent = q;
+    document.getElementById('rankPlayerSub').textContent = 'Select a rank below to assign.';
+    document.getElementById('rankPlayerTags').innerHTML = '<span class="tag">Current Rank: None</span>';
+    selectedRank = null;
+    document.querySelectorAll('.rank-option').forEach(o => o.classList.remove('selected'));
+    showToast('Player "' + q + '" loaded.');
+  }
+
+  function selectRank(el) {
+    document.querySelectorAll('.rank-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.style.borderColor = el.dataset.color;
+    selectedRank = { name: el.dataset.rank, color: el.dataset.color };
+    showToast(el.dataset.rank + ' selected.', el.dataset.color);
+  }
+
+  function assignRank() {
+    if (!rankTarget) return showToast('Load a player first.', '#f97316');
+    if (!selectedRank) return showToast('Select a rank first.', '#f97316');
+    const now = new Date().toLocaleTimeString();
+    const log = document.getElementById('rankLog');
+    // Remove placeholder
+    if (log.querySelector('div[style*="text-align:center"]')) log.innerHTML = '';
+    const html = `<div class="log-item" style="border-color:${selectedRank.color}20;">
+      <div class="log-title" style="color:${selectedRank.color};">${selectedRank.name} — ${rankTarget}</div>
+      <div class="log-meta">Assigned by: <span>Poiseau8232</span> &nbsp;Time: <span>${now}</span></div>
+    </div>`;
+    log.insertAdjacentHTML('afterbegin', html);
+    document.getElementById('rankPlayerTags').innerHTML = `<span class="tag" style="color:${selectedRank.color};border-color:${selectedRank.color};">Current Rank: ${selectedRank.name}</span>`;
+    showToast(rankTarget + ' ranked as ' + selectedRank.name + '!', selectedRank.color);
+    selectedRank = null;
+    document.querySelectorAll('.rank-option').forEach(o => o.classList.remove('selected'));
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('rankUsername') === document.activeElement) loadRankUser();
+  });
+
+    document.getElementById('playerSearch').addEventListener('keydown', e => { if (e.key === 'Enter') searchPlayer(); });
 </script>
 </body>
 </html>
